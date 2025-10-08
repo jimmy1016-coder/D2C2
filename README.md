@@ -1,9 +1,3 @@
-## BLIP: Bootstrapping Language-Image Pre-training for Unified Vision-Language Understanding and Generation
-
-## Announcement: BLIP is now officially integrated into [LAVIS](https://github.com/salesforce/LAVIS) - a one-stop library for language-and-vision research and applications!
-
-<img src="BLIP.gif" width="700">
-
 This is the PyTorch code of the <a href="https://arxiv.org/abs/2201.12086">BLIP paper</a> [[blog](https://blog.salesforceairesearch.com/blip-bootstrapping-language-image-pretraining/)]. The code has been tested on PyTorch 1.10.
 To install the dependencies, run <pre/>pip install -r requirements.txt</pre> 
 
@@ -13,6 +7,7 @@ BLIP retrieval w/ ViT-L CUHK-PEDES finetuned | Top-1
 --- | :---:
 <a href="https://drive.google.com/file/d/16nB0Kb66wEs4qb8K6Od7RXneuOuXHB2R/view?usp=drive_link">Download</a> | 78.4
  
+
 ### Citation
 If you find this code to be useful for your research, please consider citing.
 <pre>
