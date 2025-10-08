@@ -7,7 +7,7 @@ We recommend creating a new conda environment before installing the dependencies
 ```bash
 conda create -n d2c2 python=3.12
 pip install -r requirements.txt
-
+````
 ### Finetuned checkpoints:
 BLIP retrieval w/ ViT-L CUHK-PEDES finetuned | Top-1
 --- | :---:
