@@ -7,7 +7,7 @@
 '''
 import argparse
 import os
-import ruamel_yaml as yaml
+import ruamel.yaml as yaml
 import numpy as np
 import random
 import time
@@ -21,11 +21,13 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 from torch.utils.data import DataLoader
+from timm.models.hub import download_cached_file
 
 from models.blip_pretrain import blip_pretrain
 import utils
 from utils import warmup_lr_schedule, step_lr_schedule
 from data import create_dataset, create_sampler, create_loader
+
 
 def train(model, data_loader, optimizer, epoch, device, config):
     # train
@@ -95,7 +97,6 @@ def main(args, config):
     num_tasks = utils.get_world_size()
     global_rank = utils.get_rank()            
     samplers = create_sampler(datasets, [True], num_tasks, global_rank)         
-
     data_loader = create_loader(datasets,samplers,batch_size=[config['batch_size']], num_workers=[4], is_trains=[True], collate_fns=[None])[0]      
 
     #### Model #### 
@@ -109,13 +110,15 @@ def main(args, config):
     
     start_epoch = 0
     if args.checkpoint:    
-        checkpoint = torch.load(args.checkpoint, map_location='cpu') 
+        cached_file = download_cached_file(args.checkpoint, check_hash=False, progress=True)
+        checkpoint = torch.load(cached_file, map_location='cpu') 
+        #checkpoint = torch.load(args.checkpoint, map_location='cpu') 
         state_dict = checkpoint['model']    
         model.load_state_dict(state_dict)    
-        
-        optimizer.load_state_dict(checkpoint['optimizer'])
-        start_epoch = checkpoint['epoch']+1                
-        print('resume checkpoint from %s'%args.checkpoint)    
+        print('load model from %s'%args.checkpoint)
+        # optimizer.load_state_dict(checkpoint['optimizer'])
+        # start_epoch = checkpoint['epoch']+1                
+        # print('resume checkpoint from %s'%args.checkpoint)    
     
     model_without_ddp = model
     if args.distributed:
@@ -163,11 +166,11 @@ if __name__ == '__main__':
     parser.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
     parser.add_argument('--distributed', default=True, type=bool)
     args = parser.parse_args()
-
-    config = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
+    yamls = yaml.YAML(typ="rt")
+    config = yamls.load(open(args.config, 'r'))
 
     Path(args.output_dir).mkdir(parents=True, exist_ok=True)
         
-    yaml.dump(config, open(os.path.join(args.output_dir, 'config.yaml'), 'w'))    
+    yamls.dump(config, open(os.path.join(args.output_dir, 'config.yaml'), 'w'))    
     
     main(args, config)

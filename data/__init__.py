@@ -5,7 +5,7 @@ from torchvision.transforms.functional import InterpolationMode
 
 from data.coco_karpathy_dataset import coco_karpathy_train, coco_karpathy_caption_eval, coco_karpathy_retrieval_eval
 from data.nocaps_dataset import nocaps_eval
-from data.flickr30k_dataset import flickr30k_train, flickr30k_retrieval_eval
+from data.flickr30k_dataset import flickr30k_train, flickr30k_retrieval_eval, ps_train_dataset, ps_eval_dataset
 from data.vqa_dataset import vqa_dataset
 from data.nlvr_dataset import nlvr_dataset
 from data.pretrain_dataset import pretrain_dataset
@@ -15,19 +15,32 @@ def create_dataset(dataset, config, min_scale=0.5):
     
     normalize = transforms.Normalize((0.48145466, 0.4578275, 0.40821073), (0.26862954, 0.26130258, 0.27577711))
 
-    transform_train = transforms.Compose([                        
-            transforms.RandomResizedCrop(config['image_size'],scale=(min_scale, 1.0),interpolation=InterpolationMode.BICUBIC),
-            transforms.RandomHorizontalFlip(),
-            RandomAugment(2,5,isPIL=True,augs=['Identity','AutoContrast','Brightness','Sharpness','Equalize',
-                                              'ShearX', 'ShearY', 'TranslateX', 'TranslateY', 'Rotate']),     
-            transforms.ToTensor(),
-            normalize,
-        ])        
-    transform_test = transforms.Compose([
-        transforms.Resize((config['image_size'],config['image_size']),interpolation=InterpolationMode.BICUBIC),
+    # transform_train = transforms.Compose([                        
+    #         transforms.RandomResizedCrop(config['image_size'],scale=(min_scale, 1.0),interpolation=InterpolationMode.BICUBIC),
+    #         transforms.RandomHorizontalFlip(),
+    #         RandomAugment(2,5,isPIL=True,augs=['Identity','AutoContrast','Brightness','Sharpness','Equalize',
+    #                                           'ShearX', 'ShearY', 'TranslateX', 'TranslateY', 'Rotate']),     
+    #         transforms.ToTensor(),
+    #         normalize,
+    #     ])        
+    # transform_test = transforms.Compose([
+    #     transforms.Resize((config['image_size'],config['image_size']),interpolation=InterpolationMode.BICUBIC),
+    #     transforms.ToTensor(),
+    #     normalize,
+    #      ])
+    
+    train_transform = transforms.Compose([
+        transforms.Resize((config['image_res'], config['image_res']), interpolation=InterpolationMode.BICUBIC),
+        transforms.RandomHorizontalFlip(0.5),
         transforms.ToTensor(),
         normalize,
-        ])  
+        transforms.RandomErasing(scale=(0.02, 0.4), value=[0.48145466, 0.4578275, 0.40821073]),
+    ])
+    test_transform = transforms.Compose([
+        transforms.Resize((config['image_res'], config['image_res']), interpolation=InterpolationMode.BICUBIC),
+        transforms.ToTensor(),
+        normalize,
+    ])  
         
     if dataset=='pretrain':
         dataset = pretrain_dataset(config['train_file'], config['laion_path'], transform_train)              
@@ -38,7 +51,11 @@ def create_dataset(dataset, config, min_scale=0.5):
         val_dataset = coco_karpathy_caption_eval(transform_test, config['image_root'], config['ann_root'], 'val')
         test_dataset = coco_karpathy_caption_eval(transform_test, config['image_root'], config['ann_root'], 'test')   
         return train_dataset, val_dataset, test_dataset
-    
+    elif dataset=='retrieval_cuhk':
+        train_dataset = ps_train_dataset(config['train_files'], train_transform, config['image_root'], config['max_words'])
+        val_dataset = ps_eval_dataset(config['val_files'], test_transform, config['image_root'], config['max_words'])
+        test_dataset = ps_eval_dataset(config['test_files'], test_transform, config['image_root'],config['max_words'])
+        return train_dataset, val_dataset, test_dataset
     elif dataset=='nocaps':   
         val_dataset = nocaps_eval(transform_test, config['image_root'], config['ann_root'], 'val')
         test_dataset = nocaps_eval(transform_test, config['image_root'], config['ann_root'], 'test')   

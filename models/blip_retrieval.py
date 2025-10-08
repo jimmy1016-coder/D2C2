@@ -55,12 +55,12 @@ class BLIP_Retrieval(nn.Module):
 
         # create the queue
         self.register_buffer("image_queue", torch.randn(embed_dim, queue_size))
-        self.register_buffer("text_queue", torch.randn(embed_dim, queue_size))
-        self.register_buffer("idx_queue", torch.full((1,queue_size),-100))
-        self.register_buffer("ptr_queue", torch.zeros(1, dtype=torch.long))  
+        self.register_buffer("text_queue",  torch.randn(embed_dim, queue_size))
+        self.register_buffer("idx_queue",   torch.full((1,queue_size),-100))
+        self.register_buffer("ptr_queue",   torch.zeros(1, dtype=torch.long))  
 
         self.image_queue = nn.functional.normalize(self.image_queue, dim=0)
-        self.text_queue = nn.functional.normalize(self.text_queue, dim=0)
+        self.text_queue  = nn.functional.normalize(self.text_queue,  dim=0)
         
         self.queue_size = queue_size
         self.momentum = momentum
@@ -85,7 +85,7 @@ class BLIP_Retrieval(nn.Module):
         text_feat = F.normalize(self.text_proj(text_output.last_hidden_state[:,0,:]),dim=-1)        
         
         ###============== Image-text Contrastive Learning ===================###
-        idx = idx.view(-1,1)
+        idx     = idx.view(-1,1)
         idx_all = torch.cat([idx.t(), self.idx_queue.clone().detach()],dim=1)  
         pos_idx = torch.eq(idx, idx_all).float()       
         sim_targets = pos_idx / pos_idx.sum(1,keepdim=True)   
@@ -93,17 +93,16 @@ class BLIP_Retrieval(nn.Module):
         # get momentum features
         with torch.no_grad():
             self._momentum_update()
-            image_embeds_m = self.visual_encoder_m(image) 
-            image_feat_m = F.normalize(self.vision_proj_m(image_embeds_m[:,0,:]),dim=-1)  
+            image_embeds_m   = self.visual_encoder_m(image) 
+            image_feat_m     = F.normalize(self.vision_proj_m(image_embeds_m[:,0,:]),dim=-1)  
             image_feat_m_all = torch.cat([image_feat_m.t(),self.image_queue.clone().detach()],dim=1)                   
             
-            text_output_m = self.text_encoder_m(text.input_ids, attention_mask = text.attention_mask,                      
-                                                return_dict = True, mode = 'text')    
-            text_feat_m = F.normalize(self.text_proj_m(text_output_m.last_hidden_state[:,0,:]),dim=-1) 
-            text_feat_m_all = torch.cat([text_feat_m.t(),self.text_queue.clone().detach()],dim=1)
+            text_output_m    = self.text_encoder_m(text.input_ids, attention_mask = text.attention_mask, return_dict = True, mode = 'text')    
+            text_feat_m      = F.normalize(self.text_proj_m(text_output_m.last_hidden_state[:,0,:]),dim=-1) 
+            text_feat_m_all  = torch.cat([text_feat_m.t(),self.text_queue.clone().detach()],dim=1)
 
-            sim_i2t_m = image_feat_m @ text_feat_m_all / self.temp  
-            sim_t2i_m = text_feat_m @ image_feat_m_all / self.temp   
+            sim_i2t_m = image_feat_m @ text_feat_m_all  / self.temp  
+            sim_t2i_m = text_feat_m  @ image_feat_m_all / self.temp   
 
             sim_i2t_targets = alpha * F.softmax(sim_i2t_m, dim=1) + (1 - alpha) * sim_targets
             sim_t2i_targets = alpha * F.softmax(sim_t2i_m, dim=1) + (1 - alpha) * sim_targets        
@@ -246,7 +245,6 @@ class BLIP_Retrieval(nn.Module):
         image_feats = concat_all_gather(image_feat)
         text_feats = concat_all_gather(text_feat)
         
-
         batch_size = image_feats.shape[0]
 
         ptr = int(self.ptr_queue)
