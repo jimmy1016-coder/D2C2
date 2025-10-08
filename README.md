@@ -11,7 +11,7 @@ To install the dependencies, run <pre/>pip install -r requirements.txt</pre>
 ### Finetuned checkpoints:
 BLIP retrieval w/ ViT-L CUHK-PEDES finetuned | Top-1
 --- | :---:
-<a href="https://storage.googleapis.com/sfr-vision-language-research/BLIP/models/model_base_14M.pth">Download</a> | 78.4
+<a href="https://drive.google.com/file/d/16nB0Kb66wEs4qb8K6Od7RXneuOuXHB2R/view?usp=drive_link">Download</a> | 78.4
  
 ### Citation
 If you find this code to be useful for your research, please consider citing.
