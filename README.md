@@ -1,6 +1,12 @@
-This is the PyTorch code of the <a href="https://arxiv.org/abs/2201.12086">BLIP paper</a> [[blog](https://blog.salesforceairesearch.com/blip-bootstrapping-language-image-pretraining/)]. The code has been tested on PyTorch 1.10.
-To install the dependencies, run <pre/>pip install -r requirements.txt</pre> 
+This is the PyTorch code of the <a href="https://arxiv.org/abs/2201.12086">BLIP paper</a> [[blog](https://blog.salesforceairesearch.com/blip-bootstrapping-language-image-pretraining/)]. 
 
+## 🚀 Environment Setup
+
+We recommend creating a new conda environment before installing the dependencies:
+
+```bash
+conda create -n d2c2 python=3.12
+pip install -r requirements.txt
 
 ### Finetuned checkpoints:
 BLIP retrieval w/ ViT-L CUHK-PEDES finetuned | Top-1
